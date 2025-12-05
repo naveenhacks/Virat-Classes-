@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { createRoot } from 'react-dom/client';
 import { 
   Home, BookOpen, Users, Phone, Menu, X, 
   Bell, Award, Calendar, FileText, Download, Edit, Trash, 
@@ -14,12 +13,11 @@ import { GoogleGenAI } from "@google/genai";
 import { createClient } from '@supabase/supabase-js';
 
 // --- SUPABASE CONFIG ---
-// Uses Vite env vars for Netlify, falls back to hardcoded strings for local preview if needed
 const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL || 'https://egfbgumncawvykqzhirn.supabase.co';
 const supabaseKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnZmJndW1uY2F3dnlrcXpoaXJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ4NjEyOTEsImV4cCI6MjA4MDQzNzI5MX0.SzXDn5mQJMOV4O1a-sc52HfPie__xvP2Xu0gAZxHdrI';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// --- INITIAL FALLBACK CONFIG (Used if DB is empty or loading) ---
+// --- INITIAL FALLBACK CONFIG ---
 const FALLBACK_CONFIG: SiteConfig = {
   heroTitle: "Strong Foundation, Virat Results.",
   heroSubtitle: "Unlock your potential with expert coaching for Class 1 to 12.",
@@ -875,8 +873,11 @@ const StudentDashboard = ({ user, logout, data, onUpdateChatHistory }: any) => {
      onUpdateChatHistory(user.id, newHistory);
 
      try {
-       // Gemini API Call (Using process.env.API_KEY as per guidelines)
-       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+       // Gemini API Call (Using Vite Env Var)
+       const apiKey = (import.meta as any).env.VITE_GEMINI_API_KEY;
+       if (!apiKey) throw new Error("Missing API Key");
+       
+       const ai = new GoogleGenAI({ apiKey });
        
        const response = await ai.models.generateContent({
           model: 'gemini-2.5-flash',
@@ -1890,9 +1891,9 @@ const Footer = ({ config }: any) => (
   </footer>
 );
 
-// --- MAIN APP COMPONENT ---
+// --- MAIN APP EXPORT ---
 
-const App = () => {
+export default function App() {
   const [currentPage, setCurrentPage] = useState('home');
   const [user, setUser] = useState<UserType | null>(null);
   const [initialAuthRole, setInitialAuthRole] = useState<'student' | 'teacher'>('student');
@@ -2097,9 +2098,3 @@ const App = () => {
     </div>
   );
 };
-
-const rootElement = document.getElementById('root');
-if (rootElement) {
-  const root = createRoot(rootElement);
-  root.render(<App />);
-}
